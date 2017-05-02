@@ -1,16 +1,22 @@
 
 #include "mbed.h"
 #include "rtos.h"
+#include "Manchester.h"
 
-Serial out(p9, p10); //p9
-Serial in(p13, p14); //p14
+Serial out(p9, p10, 3200); //p9
+Serial in(p13, p14, 3200); //p14
 
 
 void receive_uart() {
     while (true){
         if(in.readable()){
-            char s[32];
-            printf(in.gets(s, 32));
+            char s[28];
+            in.gets(s, 28);
+
+            char dec[14];
+            Manchester::decode_manchester(s,28,dec);
+
+            printf(dec);
         }else{
             Thread::yield();
         }
@@ -25,8 +31,11 @@ int main() {
 
     while (true){
         while (!out.writeable());
-        out.printf("hello, term\r\n");
-//        wait(1);
+
+        char tosend[28];
+        Manchester::encode_manchester("hello, term\r\n",14,tosend);
+        out.printf(tosend);
+        wait(1);
     }
 
 }
