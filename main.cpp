@@ -24,8 +24,9 @@ int main() {
     thread.start(receive_uart);
 
     while (true){
+        while (!out.writeable());
         out.printf("hello, term\r\n");
-        wait(1);
+//        wait(1);
     }
 
 }
