@@ -18,10 +18,13 @@ void receive_uart() {
 }
 
 int main() {
-    printf("%s\n", "hello, term");
+    printf("%s\r\n", "hello, term!");
+
+    Thread thread;
+    thread.start(receive_uart);
 
     while (true){
-        out.printf("hello, term\n");
+        out.printf("hello, term\r\n");
         wait(1);
     }
 
