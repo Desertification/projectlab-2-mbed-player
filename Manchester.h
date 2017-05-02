@@ -5,6 +5,8 @@
 #ifndef MANCHESTER_MANCHESTER_H
 #define MANCHESTER_MANCHESTER_H
 
+#include "mbed.h"
+
 namespace Manchester {
     void encode_manchester(char *in, int size, char *out);
     bool decode_manchester(char *in, int size, char *out);
