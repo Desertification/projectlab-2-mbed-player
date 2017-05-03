@@ -13,12 +13,12 @@ char *read_2_bytes(Serial *serial, char out[2]) {
         char c = (char) serial->getc();
         if (c == 0b11100011) //no data flag
             continue;
-        else{
+        else {
             out[i] = c;
             i++;
         }
 
-        if (i == 2){
+        if (i == 2) {
             break;
         }
     }
@@ -32,12 +32,25 @@ void receive_uart() {
             char s[2];
             read_2_bytes(&in, s);
             char dec[1];
-            Manchester::decode_manchester(s, 2, dec);
-
+            bool error = Manchester::decode_manchester(s, 2, dec);
             printf(dec);
+            if(error){
+                printf("#");
+            }
         } else {
             Thread::yield();
         }
+    }
+}
+
+void send_uart(Serial *serial, const char *s, int size) {
+    int size_m = size * 2;
+    char encoded[size_m];
+    Manchester::encode_manchester(s, size, encoded);
+    
+    for (int i = 0; i < size_m; ++i) {
+        while (!serial->writeable());
+            serial->putc(encoded[i]);
     }
 }
 
@@ -48,12 +61,10 @@ int main() {
     thread.start(receive_uart);
 
     while (true) {
-        while (!out.writeable());
-
         char tosend[28];
         Manchester::encode_manchester("hello, term\r\n", 14, tosend);
-        out.printf(tosend);
-        wait(1);
+        send_uart(&out, tosend, 28);
+        //wait(1);
     }
 
 }
