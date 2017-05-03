@@ -8,9 +8,9 @@
 #include "mbed.h"
 
 namespace Manchester {
-    void encode_manchester(char *in, int size, char *out);
-    bool decode_manchester(char *in, int size, char *out);
-    void print_char_bits(char *buffer, int size);
+    void encode_manchester(const char *in, int size, char *out);
+    bool decode_manchester(const char *in, int size, char *out);
+    void print_char_bits(const char *buffer, int size);
     void debug();
 }
 

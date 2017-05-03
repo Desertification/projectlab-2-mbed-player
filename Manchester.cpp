@@ -2,7 +2,7 @@
 #include "Manchester.h"
 
 
-void ::Manchester::encode_manchester(char *in, int size, char *out) {
+void ::Manchester::encode_manchester(const char *in, int size, char *out) {
     int m_char_index = 0; // index for expanded manchester char
 
     // iterate every char
@@ -32,7 +32,7 @@ void ::Manchester::encode_manchester(char *in, int size, char *out) {
     }
 }
 
-bool ::Manchester::decode_manchester(char *in, int size, char *out) {
+bool ::Manchester::decode_manchester(const char *in, int size, char *out) {
     for (int m_char_index = 0; m_char_index < size; ++m_char_index) {
         bool bits[8];
         bool bits_inverted[8];
@@ -65,7 +65,7 @@ bool ::Manchester::decode_manchester(char *in, int size, char *out) {
     return true;
 }
 
-void ::Manchester::print_char_bits(char *buffer, int size) {
+void ::Manchester::print_char_bits(const char *buffer, int size) {
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < 8; j++) {
             int bit = ((buffer[i] >> 7 - j) & 1);
@@ -76,20 +76,26 @@ void ::Manchester::print_char_bits(char *buffer, int size) {
 }
 
 void ::Manchester::debug() {
-    int size = 3;
-    char s[size];
-    s[0] = '\0';
-    s[1] = 15;
-    s[2] = 'c';
+    char s[32] = "test 1 2 3 4, hello";
+    const int size = sizeof(s);
+    printf("size: %i\r\n", size);
+
     print_char_bits(s, size);
     printf("\n");
+
     char m[size * 2];
     encode_manchester(s, size, m);
+
     print_char_bits(m, size * 2);
     printf("\n");
-    decode_manchester(m, size * 2, s);
+
+    char decoded[size];
+    decode_manchester(m, size * 2, decoded);
+
     printf("\n");
-    print_char_bits(s, size);
+    print_char_bits(decoded, size);
+    printf("\n");
+    printf(decoded);
 }
 
 
