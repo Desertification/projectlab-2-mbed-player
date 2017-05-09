@@ -72,15 +72,36 @@
 //    }
 //}
 
+void client(){
+    SoftSerial s(NC,p17);
+    s.baud(9200);
+    while (true) {
+        while (!s.readable());
+        char c = (char) s.getc();
+        printf((const char *) c);
+    }
+}
+
+void relay(){
+    SoftSerial s(p17,NC);
+    s.baud(9200);
+    while (true){
+        wait(1);
+        s.putc(0b00110101);
+    }
+}
+
 #define RELAY 1
 
+Serial usb(USBTX,USBRX);
+
 int main() {
-    SoftSerial s(LED1,NC);
-    s.baud(1);
-
+    usb.baud(115200);
     if (RELAY){
-        s.putc(0b00110101);
+        printf("relay\r\n");
+        relay();
     } else {
-
+        printf("client\r\n");
+        client();
     }
 }
