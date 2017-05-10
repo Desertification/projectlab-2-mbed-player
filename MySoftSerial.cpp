@@ -4,7 +4,7 @@
 
 #include "MySoftSerial.h"
 
-MySoftSerial::MySoftSerial(PinName TX, PinName RX, const char *name = NULL) : SoftSerial(TX, RX, name) {
+MySoftSerial::MySoftSerial(PinName TX, PinName RX, const char *name) : SoftSerial(TX, RX, name) {
 
 }
 
