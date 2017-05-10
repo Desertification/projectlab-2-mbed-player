@@ -8,6 +8,8 @@
 #include "mbed.h"
 
 namespace Manchester {
+    int encode(int character);
+    int decode(int character);
     void encode_manchester(const char *in, int size, char *out);
     bool decode_manchester(const char *in, int size, char *out);
     void print_char_bits(const char *buffer, int size);

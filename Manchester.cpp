@@ -98,4 +98,36 @@ void ::Manchester::debug() {
     printf(decoded);
 }
 
+int ::Manchester::encode(int character) {
+    int encoded = 0; // manchester char
+    int m_bit_index = 0;
+
+    //split in bits and insert inverse
+    for (int i = 0; i < 8; i++) { // iterate over all the bits in the char
+        bool bit = (bool) ((character >> 7 - i) & 1);
+
+        encoded |= (bit << (15 - m_bit_index));
+        m_bit_index++;
+
+        encoded |= ((!bit) << (15 - m_bit_index));
+        m_bit_index++;
+    }
+    return encoded;
+}
+
+int ::Manchester::decode(int character) {
+    int decoded = 0;
+    int m_bit_index = 0;
+
+    for (int i = 0; i < 8; ++i) {
+        bool bit = (bool) ((character >> 15 - m_bit_index) & 1);
+        decoded |= (bit << (7 - i));
+        m_bit_index++;
+
+        bool bit_inv = (bool) ((character >> 15 - m_bit_index) & 1);
+        m_bit_index++;
+    }
+    return decoded;
+}
+
 

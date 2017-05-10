@@ -7,16 +7,21 @@
 
 #include "SoftSerial.h"
 
-class MySoftSerial : public SoftSerial {
+class MySoftSerial : protected SoftSerial {
 public:
     MySoftSerial(PinName TX, PinName RX, const char *name = NULL);
 
+protected:
+    virtual void prepare_tx(int c);
+
+public:
     virtual ~MySoftSerial();
 
     int putc(int c);
     int getc();
-
-
+    virtual void baud(int baudrate);
+    virtual int readable();
+    virtual int writeable();
 };
 
 

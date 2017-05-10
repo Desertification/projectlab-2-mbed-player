@@ -76,7 +76,7 @@
 void client(){
     MySoftSerial s(p18,p17);
     s.baud(20000);
-    s.format(16, SoftSerial::None, 1);
+    //s.format(16, SoftSerial::None, 1);
     while (true) {
         while (!s.readable());
         printf("got %i\r\n",s.getc());
@@ -86,7 +86,7 @@ void client(){
 void relay(){
     MySoftSerial s(p17,p18);
     s.baud(20000);
-    s.format(16, SoftSerial::None, 1);
+    //s.format(16, SoftSerial::None, 1);
     int i = 0;
     while (true){
         wait(0.1);
