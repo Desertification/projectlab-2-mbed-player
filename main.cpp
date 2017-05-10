@@ -89,14 +89,15 @@ void relay(){
     //s.format(16, SoftSerial::None, 1);
     int i = 0;
     while (true){
-        wait(0.1);
-        for (int j = 0; j < 50; ++j) {
+        wait(0.005);
+        for (int j = 0; j < 1; ++j) {
             while(!s.writeable());
             //printf("put %i\r\n", 0b0101010100110011);
             //s.putc(0b0101010100110011);
             printf("put %i\r\n", i);
             //s.putc(0b0000000000000000);
-            s.putc(0b0000000000001111);
+            //s.putc(0b0000000000001111);
+            s.putc(i);
             i++;
         }
     }
