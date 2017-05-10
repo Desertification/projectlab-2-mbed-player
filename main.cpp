@@ -73,21 +73,26 @@
 //}
 
 void client(){
-    SoftSerial s(NC,p17);
-    s.baud(9200);
+    SoftSerial s(p18,p17);
+    s.baud(1);
+    s.format(16, SoftSerial::None, 1);
     while (true) {
         while (!s.readable());
-        char c = (char) s.getc();
-        printf((const char *) c);
+        printf("got %i\r\n",s.getc());
     }
 }
 
 void relay(){
-    SoftSerial s(p17,NC);
-    s.baud(9200);
+    SoftSerial s(LED1,p18);
+    s.baud(1);
+    s.format(16, SoftSerial::None, 1);
+    int i = 0;
     while (true){
-        wait(1);
-        s.putc(0b00110101);
+        wait(0.1);
+        while(!s.writeable());
+        printf("put %i\r\n", 0b0101010100110011);
+        s.putc(0b0101010100110011);
+        i++;
     }
 }
 
