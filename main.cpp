@@ -3,6 +3,7 @@
 #include "rtos.h"
 #include "Manchester.h"
 #include "SoftSerial.h"
+#include "MySoftSerial.h"
 
 //Serial out(p9, p10, 3200); //p9
 //Serial in(p13, p14, 3200); //p14
@@ -73,7 +74,7 @@
 //}
 
 void client(){
-    SoftSerial s(p18,p17);
+    MySoftSerial s(p18,p17);
     s.baud(1);
     s.format(16, SoftSerial::None, 1);
     while (true) {
@@ -83,7 +84,7 @@ void client(){
 }
 
 void relay(){
-    SoftSerial s(LED1,p18);
+    MySoftSerial s(LED1,p18);
     s.baud(1);
     s.format(16, SoftSerial::None, 1);
     int i = 0;
