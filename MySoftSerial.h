@@ -13,6 +13,8 @@ public:
 
 protected:
     virtual void prepare_tx(int c);
+    Timer timer;
+    int max_time_between_transmission_us = 100000;
 
 public:
     virtual ~MySoftSerial();
@@ -22,6 +24,8 @@ public:
     virtual void baud(int baudrate);
     virtual int readable();
     virtual int writeable();
+
+    void correct_dc_offset();
 };
 
 
