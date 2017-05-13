@@ -13,8 +13,16 @@ public:
 
 protected:
     virtual void prepare_tx(int c);
-    Timer timer;
-    int max_time_between_transmission_us = 100000;
+    Timer dc_offset_timer;
+    virtual int max_time_between_transmission_us;
+    virtual void rx_gpio_irq_handler(void);
+    virtual int required_correction_transmissions;
+    virtual void format(int bits, Parity parity, int stop_bits);
+
+    virtual void tx_handler(void);
+    virtual void rx_detect_start(void);
+    int start_bit;
+    int start_bits;
 
 public:
     virtual ~MySoftSerial();
@@ -24,8 +32,10 @@ public:
     virtual void baud(int baudrate);
     virtual int readable();
     virtual int writeable();
-
     void correct_dc_offset();
+
+    void calc_required_correction_symbols();
+
 };
 
 
