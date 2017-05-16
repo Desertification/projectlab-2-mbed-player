@@ -6,6 +6,7 @@
 #include "SDFileSystem.h"
 #include "wave_player.h"
 #include "Relay.h"
+#include "Client.h"
 
 
 void test_player(){
@@ -17,11 +18,11 @@ void test_player(){
     waver.set_verbosity(0);
     sd.disk_initialize();
     FILE *wave_file;
+    printf("Hello, wave world!\n");
+    wave_file=fopen("/sd/test.wav","r");
     if(wave_file == NULL) {
         error("Could not open file for write\n");
     }
-    printf("Hello, wave world!\n");
-    wave_file=fopen("/sd/test.wav","r");
     waver.play(wave_file);
     fclose(wave_file);
 }
@@ -58,7 +59,7 @@ void test_relay(){
     }
 }
 
-#define RELAY 1
+#define RELAY 0
 
 int main(){
     
@@ -69,7 +70,8 @@ int main(){
         relay.run();
         //test_relay();
     } else {
-        printf("client\r\n");
-        test_client();
+        Client client(p17,20000);
+        client.run();
+        //test_client();
     }
 }
