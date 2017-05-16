@@ -6,24 +6,35 @@
 #include "Manchester.h"
 
 
-MySoftSerial::MySoftSerial(PinName TX, PinName RX, const char *name) : SoftSerial(TX, RX, name) {
+MySoftSerial::MySoftSerial(PinName TX, PinName RX, const char *name) {
+//MySoftSerial::MySoftSerial(PinName TX, PinName RX, const char *name) : SoftSerial(TX, RX, name) {
+    tx_en = rx_en = false;
+    read_buffer = 0;
+    if (TX != NC) {
+        tx = new DigitalOut(TX);
+        tx_en = true;
+        tx->write(1);
+        tx_bit = -1;
+        txticker.attach(this, &MySoftSerial::tx_handler);
+    }
+    if (RX != NC) {
+        rx = new InterruptIn(RX);
+        rx_en = true;
+        out_valid = false;
+        rxticker.attach(this, &MySoftSerial::rx_handler);
+        rx->fall(this, &MySoftSerial::rx_gpio_irq_handler);
+    }
+
+    baud(9600);
+
     max_time_between_transmission_us = 10000;
     calc_required_correction_symbols();
-    format(16, SoftSerial::None, 1);
+    format(16, MySoftSerial::None, 1);
     start_bits = 4;
     dc_offset_timer.reset();
     dc_offset_timer.start();
     overhead_us = 200 * 1000000 / SystemCoreClock;
-    
-    txticker.detach();
-    rxticker.detach();
-    if (TX != NC) {
-        txticker.attach(this, &MySoftSerial::tx_handler);
-    }
-    if (RX != NC) {
-        rxticker.attach(this, &MySoftSerial::rx_handler);
-        rx->fall(this, &MySoftSerial::rx_gpio_irq_handler);
-    }
+
 }
 
 void MySoftSerial::calc_required_correction_symbols() {
@@ -31,7 +42,10 @@ void MySoftSerial::calc_required_correction_symbols() {
 }
 
 MySoftSerial::~MySoftSerial() {
-
+    if (tx_en)
+        delete(tx);
+    if (rx_en)
+        delete(rx);
 }
 
 int MySoftSerial::putc(int c) {
@@ -69,16 +83,20 @@ void MySoftSerial::prepare_tx(int c) {
 }
 
 void MySoftSerial::baud(int baudrate) {
-    SoftSerial::baud(baudrate);
+    bit_period = 1000000 / baudrate;
     calc_required_correction_symbols();
 }
 
 int MySoftSerial::readable() {
-    return SoftSerial::readable();
+    return out_valid;
 }
 
 int MySoftSerial::writeable() {
-    return SoftSerial::writeable();
+    if (!tx_en)
+        return false;
+    if (tx_bit == -1)
+        return true;
+    return false;
 }
 
 void MySoftSerial::correct_dc_offset() {
@@ -89,6 +107,12 @@ void MySoftSerial::correct_dc_offset() {
         tx->write(1);
         wait_us(bit_period * 4); // send 4 ones
     }
+}
+
+int MySoftSerial::_getc( void ) {
+    while(!readable());
+    out_valid = false;
+    return out_buffer;
 }
 
 void MySoftSerial::rx_gpio_irq_handler(void) {
@@ -202,8 +226,10 @@ void MySoftSerial::rx_handler(void) {
     rx->fall(this, &MySoftSerial::rx_gpio_irq_handler);
 }
 
-void MySoftSerial::format(int bits, SoftSerial::Parity parity, int stop_bits) {
-    SoftSerial::format(bits, parity, stop_bits);
+void MySoftSerial::format(int bits, MySoftSerial::Parity parity, int stop_bits) {
+    _bits = bits;
+    _parity = parity;
+    _stop_bits = stop_bits;
     _total_bits = 4 + _bits + _stop_bits;
 }
 
