@@ -5,13 +5,13 @@
 #include "MySoftSerial.h"
 #include "SDFileSystem.h"
 #include "wave_player.h"
-
-
-Serial usb(USBTX,USBRX);
-SDFileSystem sd(p5, p6, p7, p8, "sd");
+#include "Relay.h"
 
 
 void test_player(){
+    SDFileSystem sd(p5, p6, p7, p8, "sd");
+    Serial usb(USBTX,USBRX);
+    usb.baud(115200);
     AnalogOut DACout(p18);
     wave_player waver(&DACout);
     waver.set_verbosity(0);
@@ -26,7 +26,10 @@ void test_player(){
     fclose(wave_file);
 }
 
-void client(){
+void test_client(){
+    Serial usb(USBTX,USBRX);
+    usb.baud(115200);
+
     MySoftSerial s(p18,p17);
     
     s.baud(20000);
@@ -36,7 +39,10 @@ void client(){
     }
 }
 
-void relay(){
+void test_relay(){
+    Serial usb(USBTX,USBRX);
+    usb.baud(115200);
+
     MySoftSerial s(p17,p18);
     //MySoftSerial s(LED1,p18);
     s.baud(20000);
@@ -55,15 +61,15 @@ void relay(){
 #define RELAY 1
 
 int main(){
-    usb.baud(115200);
     
     //test_player();
     
     if (RELAY) {
-        printf("relay\r\n");
-        relay();
+        Relay relay(p17,20000,USBTX,USBRX,115200);
+        relay.run();
+        //test_relay();
     } else {
         printf("client\r\n");
-        client();
+        test_client();
     }
 }
