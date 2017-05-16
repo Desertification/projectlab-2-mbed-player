@@ -123,7 +123,6 @@ void MySoftSerial::rx_gpio_irq_handler(void) {
     start_bit = 1; // start from second bit
     rx_bit = 0;
     rx_error = false;
-    printf("q\n");
 }
 
 void MySoftSerial::rx_detect_start(void){
@@ -138,19 +137,15 @@ void MySoftSerial::rx_detect_start(void){
             break;
         case 1:
             ok = val==1;
-            printf("a\n");
             break;
         case 2:
             ok = val==0;
-            printf("b\n");
             break;
         case 3:
-            printf("c\n");
             ok = val==1;
             rxticker.attach(this, &MySoftSerial::rx_handler);
             break;
         default:
-            printf("d\n");
             ok = false;
     }
 
@@ -166,7 +161,6 @@ void MySoftSerial::rx_detect_start(void){
 
 void MySoftSerial::rx_handler(void) {
     //Receive data
-    printf("%i\n",rx_bit);
     int val = rx->read();
  
     rxticker.setNext(bit_period);

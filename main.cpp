@@ -1,7 +1,7 @@
 
 #include "mbed.h"
 #include "Manchester.h"
-#include "SoftSerial.h"
+//#include "SoftSerial.h"
 #include "MySoftSerial.h"
 #include "SDFileSystem.h"
 #include "wave_player.h"
@@ -29,7 +29,7 @@ void test_player(){
 void client(){
     MySoftSerial s(p18,p17);
     
-    s.baud(1);
+    s.baud(20000);
     while (true) {
         while (!s.readable());
         printf("got %i\r\n",s.getc());
@@ -39,20 +39,20 @@ void client(){
 void relay(){
     MySoftSerial s(p17,p18);
     //MySoftSerial s(LED1,p18);
-    s.baud(1);
+    s.baud(20000);
     int i = 0;
     while (true) {
-        //wait(0.001);
+        //wait(0.1);
         for (int j = 0; j < 1; ++j) {
             while(!s.writeable());
             printf("put %i\r\n", i);
-            s.putc(0b10101010);
+            s.putc(i);
             i++;
         }
     }
 }
 
-#define RELAY 0
+#define RELAY 1
 
 int main(){
     usb.baud(115200);
