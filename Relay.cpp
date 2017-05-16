@@ -57,7 +57,7 @@ void Relay::send_file(){
         // send max 64 bytes
         int m = 0;
         for (m; m < k; ++m) {
-            while (!softSerial.readable());
+            while (!softSerial.writeable());
             softSerial.putc(buffer[m]);
         }
 
