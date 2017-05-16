@@ -5,15 +5,25 @@
 #include "MySoftSerial.h"
 #include "Manchester.h"
 
-uint32_t overhead_us = 200 * 1000000 / SystemCoreClock;
 
 MySoftSerial::MySoftSerial(PinName TX, PinName RX, const char *name) : SoftSerial(TX, RX, name) {
-    max_time_between_transmission_us = 100000;
+    max_time_between_transmission_us = 10000;
     calc_required_correction_symbols();
     format(16, SoftSerial::None, 1);
     start_bits = 4;
     dc_offset_timer.reset();
     dc_offset_timer.start();
+    overhead_us = 200 * 1000000 / SystemCoreClock;
+    
+    txticker.detach();
+    rxticker.detach();
+    if (TX != NC) {
+        txticker.attach(this, &MySoftSerial::tx_handler);
+    }
+    if (RX != NC) {
+        rxticker.attach(this, &MySoftSerial::rx_handler);
+        rx->fall(this, &MySoftSerial::rx_gpio_irq_handler);
+    }
 }
 
 void MySoftSerial::calc_required_correction_symbols() {
@@ -33,6 +43,16 @@ int MySoftSerial::putc(int c) {
         correct_dc_offset();
     }
     return _putc(c);
+}
+
+int MySoftSerial::_putc(int c)
+{
+    while(!writeable());
+    prepare_tx(c);
+    tx_bit = 0;
+    txticker.prime();
+    tx_handler();
+    return 0;
 }
 
 int MySoftSerial::getc() {
@@ -79,6 +99,7 @@ void MySoftSerial::rx_gpio_irq_handler(void) {
     start_bit = 1; // start from second bit
     rx_bit = 0;
     rx_error = false;
+    printf("q\n");
 }
 
 void MySoftSerial::rx_detect_start(void){
@@ -93,26 +114,92 @@ void MySoftSerial::rx_detect_start(void){
             break;
         case 1:
             ok = val==1;
+            printf("a\n");
             break;
         case 2:
             ok = val==0;
+            printf("b\n");
             break;
         case 3:
+            printf("c\n");
             ok = val==1;
-            rxticker.attach(this, &MySoftSerial::tx_handler);
+            rxticker.attach(this, &MySoftSerial::rx_handler);
             break;
         default:
+            printf("d\n");
             ok = false;
     }
 
     if(ok){
-        rx_bit++;
+        start_bit++;
         rxticker.setNext(bit_period);
     } else {
         // start pattern was not correct, this is not a data packet
         rxticker.detach();
-        rx->fall(this, &SoftSerial::rx_gpio_irq_handler);
+        rx->fall(this, &MySoftSerial::rx_gpio_irq_handler);
     }
+}
+
+void MySoftSerial::rx_handler(void) {
+    //Receive data
+    printf("%i\n",rx_bit);
+    int val = rx->read();
+ 
+    rxticker.setNext(bit_period);
+    rx_bit++;
+    
+    
+    if (rx_bit <= _bits) {
+        read_buffer |= val << (rx_bit - 1);
+        return;
+    }
+    
+    //Receive parity
+    bool parity_count;
+    if (rx_bit == _bits + 1) {
+        switch (_parity) {
+            case Forced1:
+                if (val == 0)
+                    rx_error = true;
+                return;
+            case Forced0:
+                if (val == 1)
+                    rx_error = true;
+                return;
+            case Even:
+            case Odd:
+                parity_count = val;
+                for (int i = 0; i<_bits; i++) {
+                    if (((read_buffer >> i) & 0x01) == 1)
+                        parity_count = !parity_count;
+                }
+                if ((parity_count) && (_parity == Even))
+                    rx_error = true;
+                if ((!parity_count) && (_parity == Odd))
+                    rx_error = true;
+                return;
+        }
+    }
+    
+    //Receive stop
+    if (rx_bit < _bits + (bool)_parity + _stop_bits) {
+        if (!val)
+            rx_error = true;
+        return;
+    }    
+    
+    //The last stop bit
+    if (!val)
+        rx_error = true;
+    
+    if (!rx_error) {
+        out_valid = true;
+        out_buffer = read_buffer;
+        fpointer[RxIrq].call();
+    }
+    read_buffer = 0;
+    rxticker.detach(); 
+    rx->fall(this, &MySoftSerial::rx_gpio_irq_handler);
 }
 
 void MySoftSerial::format(int bits, SoftSerial::Parity parity, int stop_bits) {
