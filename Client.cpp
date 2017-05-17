@@ -58,15 +58,15 @@ void Client::handle_type() {
 }
 
 void Client::send_file() {
+    printf("starting file write\r\n");
     // get file size
     int size = 0;
     for (int i = 0; i < 4; ++i) {
         while (!softSerial.readable());
         int b = softSerial.getc();
-        while (!softSerial.writeable());
-        softSerial.putc(b);
         size |= b << ((3 - i) << 3);
     }
+    printf("must write %i bytes\r\n", size);
 
 
     // send data
@@ -87,6 +87,7 @@ void Client::send_file() {
 
         // store max 64 bytes
         fwrite(buffer, sizeof(char), (size_t) k, wave_file);
+        //printf("wrote %i:%i bytes\r\n",k,j);
     }
 
     play_file();

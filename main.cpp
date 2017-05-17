@@ -70,6 +70,8 @@ int main(){
         relay.run();
         //test_relay();
     } else {
+        Serial usb(USBTX,USBRX);
+        usb.baud(115200);
         Client client(p17,20000);
         client.run();
         //test_client();
