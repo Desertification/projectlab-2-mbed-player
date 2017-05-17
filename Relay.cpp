@@ -16,6 +16,10 @@ void Relay::run() {
     }
 }
 
+void Relay::play_last(){
+    
+}
+
 void Relay::set_volume(){
     while (!usb.readable());
     int volume = usb.getc();
@@ -35,6 +39,8 @@ void Relay::send_file(){
         int b = usb.getc();
         while(!softSerial.writeable());
         softSerial.putc(b);
+        while (!usb.writeable());
+        usb.putc(ACK);
         size |=  b << ((3-i) << 3);
     }
 
@@ -44,7 +50,7 @@ void Relay::send_file(){
 
         // get max 64 bytes
         int k = 0;
-        for (k; k < 64; ++k) {
+        for (k; k < 512; ++k) {
             if(j == size){
                 break;
             }

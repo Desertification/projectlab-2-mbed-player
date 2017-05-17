@@ -21,13 +21,15 @@ private:
     MySoftSerial softSerial;
     SDFileSystem fileSystem;
     AnalogOut aout;
+    DigitalOut dout;
     wave_player player;
     FILE *wave_file;
 
     static const int SEND_FILE = 0b00001111;
     static const int SET_VOLUME = 0b00110011;
     static const int ACK = 0b11111111;
-    char buffer[64];
+    static const int PLAY_LAST = 0b10001011;
+    char buffer[512];
 
 
     void set_volume();

@@ -5,13 +5,14 @@
 #include "Client.h"
 
 Client::Client(PinName rx_luart, int baudrate_luart) :
-        aout(p18), fileSystem(p5, p6, p7, p8, "sd"), player(&aout), softSerial(NC, rx_luart),
-        spi_amp(p11, p12, p13, p14) {
+        aout(p18), dout(p14), fileSystem(p5, p6, p7, p8, "sd"), player(&aout), softSerial(NC, rx_luart),
+        spi_amp(p11, p12, p13, NC) {
     softSerial.baud(baudrate_luart);
     spi_amp.format(8, 0);
+    dout = 1;
     spi_amp.frequency(1000000);
     fileSystem.disk_initialize();
-    wave_file = fopen("/sd/receive.wav", "w+");
+    wave_file = fopen("/sd/receive.wav", "r+");
     if (wave_file == NULL) {
         error("Could not open file for w+\n");
     }
@@ -29,9 +30,11 @@ void Client::play_file() {
 void Client::set_volume() {
     while (!softSerial.readable());
     int value = softSerial.getc();
-
+    dout = 0;
+    wait(0.001);
     spi_amp.write(0);
-    spi_amp.write(int((value / 100.0) * 255.0));
+    spi_amp.write(value);
+    dout = 1;
     printf("volume set to %i\r\n", value);
 }
 
@@ -52,12 +55,15 @@ void Client::handle_type() {
         case SEND_FILE:
             send_file();
             break;
+        case PLAY_LAST:
+            play_file();
         default:
             break;
     }
 }
 
 void Client::send_file() {
+    freopen("/sd/receive.wav", "w+", wave_file);
     printf("starting file write\r\n");
     // get file size
     int size = 0;
@@ -75,7 +81,7 @@ void Client::send_file() {
 
         // get max 64 bytes
         int k = 0;
-        for (k; k < 64; ++k) {
+        for (k; k < 512; ++k) {
             if (j == size) {
                 break;
             }
@@ -87,7 +93,8 @@ void Client::send_file() {
 
         // store max 64 bytes
         fwrite(buffer, sizeof(char), (size_t) k, wave_file);
-        //printf("wrote %i:%i bytes\r\n",k,j);
+        fflush(wave_file);
+        printf("wrote %i:%i bytes\r\n",k,j);
     }
 
     play_file();
